@@ -14,10 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
+import * as tf from "@tensorflow/tfjs";
 import * as posenet from "@tensorflow-models/posenet";
 import dat from "dat.gui";
 import Stats from "stats.js";
 import "babel-polyfill";
+import fs from "fs";
 
 import {
   drawBoundingBox,
@@ -30,9 +32,11 @@ import {
   updateTryResNetButtonDatGuiCss
 } from "./demo_util";
 
-const videoWidth = 1280;
-const videoHeight = 720;
+const videoWidth = 600;
+const videoHeight = 600;
 const stats = new Stats();
+
+const model = require("./model/model.json");
 
 /**
  * Loads a the camera to be used in the demo
@@ -472,12 +476,12 @@ function detectPoseInRealTime(video, net) {
       ctx.restore();
     }
 
-    ctx.fillText("Hello world", 10, 50);
-
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
     // scores
-    console.log(poses);
+    if (recorded) {
+      recordedPoses.push(poses[0]);
+    }
 
     poses.forEach(({ score, keypoints }) => {
       if (score >= minPoseConfidence) {
@@ -500,6 +504,38 @@ function detectPoseInRealTime(video, net) {
   }
 
   poseDetectionFrame();
+}
+
+let recordedPoses = [];
+let recorded = false;
+
+function startRecord() {
+  console.log("start record...");
+  recordedPoses = [];
+  recorded = true;
+}
+
+function stopRecord() {
+  console.log(JSON.stringify(recordedPoses));
+  console.log(recordedPoses.length + " recorded");
+
+  console.log("stop record...");
+}
+
+async function setupRecord() {
+  let c = 0;
+  document
+    .getElementById("record-button")
+    .addEventListener("click", async () => {
+      // const model = await tf.loadLayersModel(model);
+      // model.summary();
+      setTimeout(() => {
+        startRecord();
+        setTimeout(() => {
+          stopRecord();
+        }, 20 * 1000);
+      }, 1000);
+    });
 }
 
 /**
@@ -531,7 +567,9 @@ export async function bindPage() {
   }
 
   setupGui([], net);
+  setupRecord();
   setupFPS();
+
   detectPoseInRealTime(video, net);
 }
 
