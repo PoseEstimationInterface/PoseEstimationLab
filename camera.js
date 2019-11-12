@@ -17,7 +17,7 @@
 import * as posenet from "@tensorflow-models/posenet";
 import dat from "dat.gui";
 import Stats from "stats.js";
-
+import "babel-polyfill";
 import {
   drawBoundingBox,
   drawKeypoints,
@@ -506,6 +506,7 @@ function detectPoseInRealTime(video, net) {
  * available camera devices, and setting off the detectPoseInRealTime function.
  */
 export async function bindPage() {
+  localStorage.setItem('item',"true");
   toggleLoadingUI(true);
   const net = await posenet.load({
     architecture: guiState.input.architecture,

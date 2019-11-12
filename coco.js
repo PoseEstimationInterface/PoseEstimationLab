@@ -17,6 +17,7 @@
 import * as posenet from '@tensorflow-models/posenet';
 import * as tf from '@tensorflow/tfjs';
 import dat from 'dat.gui';
+import "babel-polyfill";
 
 import {isMobile, toggleLoadingUI, tryResNetButtonName, tryResNetButtonText, updateTryResNetButtonDatGuiCss} from './demo_util';
 // clang-format off
@@ -202,7 +203,7 @@ let guiState = {
     multiplier: defaultMobileNetMultiplier,
     quantBytes: defaultQuantBytes,
   },
-  image: 'tennis_in_crowd.jpg',
+  image: images[3],
   multiPoseDetection: {
     minPartConfidence: 0.1,
     minPoseConfidence: 0.2,

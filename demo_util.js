@@ -133,21 +133,6 @@ export function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
     const { y, x } = keypoint.position;
     drawPoint(ctx, y * scale, x * scale, 3, color);
 
-    const tempFont = ctx.font;
-    ctx.font = "48px serif";
-    if (keypoint.part === "leftEye") {
-      ctx.fillText("눈", x * scale - 24, y * scale + 24);
-    } else if (keypoint.part === "rightEye") {
-      ctx.fillText("눈", x * scale - 24, y * scale + 24);
-    } else if (keypoint.part == "nose") {
-      ctx.fillText("코", x * scale - 24, y * scale + 24);
-    } else if (keypoint.part === "rightWrist") {
-      ctx.fillText("오른팔", x * scale - 24, y * scale + 24);
-    } else if (keypoint.part === "leftWrist") {
-      ctx.fillText("왼팔", x * scale - 24, y * scale + 24);
-    }
-
-    ctx.font = tempFont;
   }
 }
 
