@@ -483,6 +483,35 @@ function detectPoseInRealTime(video, net) {
       recordedPoses.push(poses[0]);
     }
 
+    if (captured) {
+      captured = false;
+      // capturedPose.push(poses[0]);
+      let rightWristPos = poses[0]["keypoints"][10]["position"]
+      console.log(rightWristPos)
+      // console.log(JSON.stringify(capturedPose));
+      // console.log(JSON.stringify(poses[0]["keypoints"][10]["position"]))
+
+      // if (rightWristPos["x"] > 450 && rightWristPos["y"] < 150) {
+      //   console.log("rightWrist in...")
+      // }
+    }
+
+    let rWrist = poses[0]["keypoints"][10]["position"]
+    if (rWrist["x"] > 450 && rWrist["y"] < 150 && rWristIn == false) {
+      // var audio = new Audio('./mp3/Resonate_Snare_Sat06.mp3');
+      var audio = document.getElementById("snareSrc");
+      audio.play();
+      // console.log(audio.src)
+      // audio.play();
+      console.log("## rightWrist in...");
+      rWristIn = true;
+    }
+
+    if (rWrist["x"] < 450 && rWrist["y"] > 150 && rWristIn == true) {
+      console.log("## rightWrist out...");
+      rWristIn = false;
+    }
+
     poses.forEach(({ score, keypoints }) => {
       if (score >= minPoseConfidence) {
         if (guiState.output.showPoints) {
@@ -497,6 +526,8 @@ function detectPoseInRealTime(video, net) {
       }
     });
 
+    // console.log(poses["keypoints"][10]["position"]["x"]);
+
     // End monitoring code for frames per second
     stats.end();
 
@@ -505,6 +536,8 @@ function detectPoseInRealTime(video, net) {
 
   poseDetectionFrame();
 }
+
+let rWristIn = false;
 
 let recordedPoses = [];
 let recorded = false;
@@ -533,9 +566,24 @@ async function setupRecord() {
         startRecord();
         setTimeout(() => {
           stopRecord();
-        }, 20 * 1000);
+        }, 5 * 1000);
       }, 1000);
     });
+
+    document
+        .getElementById("capture-button")
+        .addEventListener("click", async () => {
+            capture();
+        });
+}
+
+let captured = false;
+let capturedPose = [];
+
+function capture() {
+  console.log("captured...");
+  capturedPose = [];
+  captured = true;
 }
 
 /**

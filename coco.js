@@ -84,18 +84,18 @@ function drawResults(canvas, poses, minPartConfidence, minPoseConfidence) {
 const imageBucket =
     'https://storage.googleapis.com/tfjs-models/assets/posenet/';
 
-async function (imagePath) {
-  const image = new Image();
-  const promise = new Promise((resolve, reject) => {
-    image.crossOrigin = '';
-    image.onload = () => {
-      resolve(image);
-    };
-  });
-
-  image.src = `${imageBucket}${imagePath}`;
-  return promise;
-}
+// async function (imagePath) {
+//   const image = new Image();
+//   const promise = new Promise((resolve, reject) => {
+//     image.crossOrigin = '';
+//     image.onload = () => {
+//       resolve(image);
+//     };
+//   });
+//
+//   image.src = `${imageBucket}${imagePath}`;
+//   return promise;
+// }
 
 function multiPersonCanvas() {
   return document.querySelector('#multi canvas');
