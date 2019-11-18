@@ -1,10 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="import" href="./t-rex-runner/index.html">
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
-    <script src="chanho.js"></script>
+    <div style="position:relative; top:1500px">
+        <script>
+            var link = document.querySelector('link[rel="import"]');
+            var content = link.import;
+            // Grab DOM from warning.html's document.
+            var el = content.querySelector('.offline');
+            document.body.appendChild(el.cloneNode(true));
+        </script>
+    </div>
+    <div>
+        <div id="info" style='display:none'>
+        </div>
+        <div id="loading" style='display:flex'>
+            <div class="spinner-text">
+                Loading PoseNet model...
+            </div>
+            <div class="sk-spinner sk-spinner-pulse"></div>
+        </div>
+        <div id='main' style='display:none'>
+            <video id="video" playsinline style=" -moz-transform: scaleX(-1);
+            -o-transform: scaleX(-1);
+            -webkit-transform: scaleX(-1);
+            transform: scaleX(-1);
+            display: none;
+            ">
+            </video>
+            <canvas id="output" />
+        </div>
+        <script src="camera.js"></script>
+
+    </div>
 </body>
 </html>

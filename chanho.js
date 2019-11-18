@@ -19,6 +19,7 @@ const stats = new Stats();
 
 
 export async function chanho(){
+    localStorage.setItem('item',"true");
     toggleLoadingUI(true);
     const net = await posenet.load({
         architecture: guiState.input.architecture,

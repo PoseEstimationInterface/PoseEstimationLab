@@ -18,6 +18,8 @@ import * as posenet from "@tensorflow-models/posenet";
 import dat from "dat.gui";
 import Stats from "stats.js";
 import "babel-polyfill";
+
+//1566 7711
 import {
   drawBoundingBox,
   drawKeypoints,
@@ -40,7 +42,7 @@ const stats = new Stats();
 async function setupCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
-      "Browser API navigator.mediaDevices.getUserMedia not available"
+        "Browser API navigator.mediaDevices.getUserMedia not available"
     );
   }
 
@@ -103,7 +105,7 @@ const guiState = {
     nmsRadius: 30.0
   },
   output: {
-    showVideo: true,
+    showVideo: false,
     showSkeleton: true,
     showPoints: true,
     showBoundingBox: false
@@ -160,9 +162,9 @@ function setupGui(cameras, net) {
     guiState.inputResolution = inputResolution;
     guiState.input.inputResolution = inputResolution;
     inputResolutionController = input.add(
-      guiState.input,
-      "inputResolution",
-      inputResolutionArray
+        guiState.input,
+        "inputResolution",
+        inputResolutionArray
     );
     inputResolutionController.onChange(function(inputResolution) {
       guiState.changeToInputResolution = inputResolution;
@@ -181,9 +183,9 @@ function setupGui(cameras, net) {
     guiState.outputStride = outputStride;
     guiState.input.outputStride = outputStride;
     outputStrideController = input.add(
-      guiState.input,
-      "outputStride",
-      outputStrideArray
+        guiState.input,
+        "outputStride",
+        outputStrideArray
     );
     outputStrideController.onChange(function(outputStride) {
       guiState.changeToOutputStride = outputStride;
@@ -201,9 +203,9 @@ function setupGui(cameras, net) {
     guiState.multiplier = multiplier;
     guiState.input.multiplier = multiplier;
     multiplierController = input.add(
-      guiState.input,
-      "multiplier",
-      multiplierArray
+        guiState.input,
+        "multiplier",
+        multiplierArray
     );
     multiplierController.onChange(function(multiplier) {
       guiState.changeToMultiplier = multiplier;
@@ -222,9 +224,9 @@ function setupGui(cameras, net) {
     guiState.quantBytes = +quantBytes;
     guiState.input.quantBytes = +quantBytes;
     quantBytesController = input.add(
-      guiState.input,
-      "quantBytes",
-      quantBytesArray
+        guiState.input,
+        "quantBytes",
+        quantBytesArray
     );
     quantBytesController.onChange(function(quantBytes) {
       guiState.changeToQuantBytes = +quantBytes;
@@ -285,18 +287,18 @@ function setupGui(cameras, net) {
 
   let multi = gui.addFolder("Multi Pose Detection");
   multi
-    .add(guiState.multiPoseDetection, "maxPoseDetections")
-    .min(1)
-    .max(20)
-    .step(1);
+      .add(guiState.multiPoseDetection, "maxPoseDetections")
+      .min(1)
+      .max(20)
+      .step(1);
   multi.add(guiState.multiPoseDetection, "minPoseConfidence", 0.0, 1.0);
   multi.add(guiState.multiPoseDetection, "minPartConfidence", 0.0, 1.0);
   // nms Radius: controls the minimum distance between poses that are returned
   // defaults to 20, which is probably fine for most use cases
   multi
-    .add(guiState.multiPoseDetection, "nmsRadius")
-    .min(0.0)
-    .max(40.0);
+      .add(guiState.multiPoseDetection, "nmsRadius")
+      .min(0.0)
+      .max(40.0);
   multi.open();
 
   let output = gui.addFolder("Output");
@@ -505,6 +507,9 @@ function detectPoseInRealTime(video, net) {
  * Kicks off the demo by loading the posenet model, finding and loading
  * available camera devices, and setting off the detectPoseInRealTime function.
  */
+const exportData = {"name":1,"age":2};
+export default exportData;
+
 export async function bindPage() {
   localStorage.setItem('item',"true");
   toggleLoadingUI(true);
@@ -524,8 +529,8 @@ export async function bindPage() {
   } catch (e) {
     let info = document.getElementById("info");
     info.textContent =
-      "this browser does not support video capture," +
-      "or this device does not have a camera";
+        "this browser does not support video capture," +
+        "or this device does not have a camera";
     info.style.display = "block";
     throw e;
   }
@@ -536,8 +541,8 @@ export async function bindPage() {
 }
 
 navigator.getUserMedia =
-  navigator.getUserMedia ||
-  navigator.webkitGetUserMedia ||
-  navigator.mozGetUserMedia;
+    navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia;
 // kick off the demo
 bindPage();

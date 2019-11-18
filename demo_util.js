@@ -25,6 +25,12 @@ export const tryResNetButtonName = "tryResNetButton";
 export const tryResNetButtonText = "[New] Try ResNet50";
 const tryResNetButtonTextCss = "width:100%;text-decoration:underline;";
 const tryResNetButtonBackgroundCss = "background:#e61d5f;";
+import {onDocumentLoad} from './t-rex-runner';
+
+let Runner;
+document.addEventListener('DOMContentLoaded',  function (){
+  Runner = onDocumentLoad();
+});
 
 function isAndroid() {
   return /Android/i.test(navigator.userAgent);
@@ -81,6 +87,7 @@ function toTuple({ y, x }) {
 }
 
 export function drawPoint(ctx, y, x, r, color) {
+  Runner.tRex.startJump(Runner.currentSpeed);
   ctx.beginPath();
   ctx.arc(x, y, r, 0, 2 * Math.PI);
   ctx.fillStyle = color;

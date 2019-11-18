@@ -4,7 +4,9 @@
 // extract from chromium source code by @liuwayong
 
 
-(function () {
+let isStart = false;
+
+(function Trex () {
     'use strict';
     /**
      * T-Rex runner.
@@ -13,6 +15,7 @@
      * @constructor
      * @export
      */
+
     function Runner(outerContainerId, opt_config) {
         // Singleton
         if (Runner.instance_) {
@@ -381,7 +384,7 @@
 
             // Draw t-rex
             this.tRex = new Trex(this.canvas, this.spriteDef.TREX);
-
+            isStart = true;
             this.outerContainerEl.appendChild(this.containerEl);
 
             if (IS_MOBILE) {
@@ -390,9 +393,10 @@
 
             this.startListening();
             this.update();
-
             window.addEventListener(Runner.events.RESIZE,
                 this.debounceResize.bind(this));
+            return this.tRex;
+
         },
 
         /**
@@ -521,12 +525,19 @@
                 this.dimensions.HEIGHT);
         },
 
+        motionJump : function(){
+
+            return this.tRex.startJump(this.currentSpeed);
+        },
         /**
          * Update the game frame and schedules the next one.
          */
+
         update: function () {
             this.updatePending = false;
-
+            // if(this.motionJump()){ // 점프제어
+            //     this.tRex.startJump(this.currentSpeed);
+            // }
             var now = getTimeStamp();
             var deltaTime = now - (this.time || now);
             this.time = now;
@@ -610,28 +621,27 @@
          * Event handler.
          */
         handleEvent: function (e, sendedItem) {
-            //console.log(localStorage.getItem('item')) // get position at camera.js
-            console.log(sendedItem);
             if(!sendedItem){
-                return (function (evtType, events) {
-                    switch (evtType) {
-                        case events.KEYDOWN:
-                        case events.TOUCHSTART:
-                        case events.MOUSEDOWN:
-                        case events.DETECTED:
-                            this.onKeyDown(e);
-                            break;
-                        case events.KEYUP:
-                        case events.TOUCHEND:
-                        case events.MOUSEUP:
-                        case events.UNDETECTED:
-                            this.onKeyUp(e);
-                            break;
-                    }
-                }.bind(this))(e.type, Runner.events);
-            }
+                return (
+                    function (evtType, events) {
+                        switch (evtType) {
+                            case events.KEYDOWN:
+                            case events.TOUCHSTART:
+                            case events.MOUSEDOWN:
+                            case events.DETECTED:
+                                this.onKeyDown(e);
+                                break;
+                            case events.KEYUP:
+                            case events.TOUCHEND:
+                            case events.MOUSEUP:
+                            case events.UNDETECTED:
+                                this.onKeyUp(e);
+                                break;
+                        }
+                    }.bind(this))(e.type, Runner.events);
+                }
 
-        },
+            },
         /*
         * detect jumpmotion
         * */
@@ -962,7 +972,6 @@
         }
     }
 
-
     /**
      * Create canvas element.
      * @param {HTMLElement} container Element to append canvas to.
@@ -1256,7 +1265,7 @@
      * @param {number} opt_xOffset
      */
     function Obstacle(canvasCtx, type, spriteImgPos, dimensions,
-        gapCoefficient, speed, opt_xOffset) {
+                      gapCoefficient, speed, opt_xOffset) {
 
         this.canvasCtx = canvasCtx;
         this.spritePos = spriteImgPos;
@@ -1681,7 +1690,7 @@
             // Update the frame position.
             if (this.timer >= this.msPerFrame) {
                 this.currentFrame = this.currentFrame ==
-                    this.currentAnimFrames.length - 1 ? 0 : this.currentFrame + 1;
+                this.currentAnimFrames.length - 1 ? 0 : this.currentFrame + 1;
                 this.timer = 0;
             }
 
@@ -1698,6 +1707,8 @@
          * @param {number} y
          */
         draw: function (x, y) {
+
+
             var sourceX = x;
             var sourceY = y;
             var sourceWidth = this.ducking && this.status != Trex.status.CRASHED ?
@@ -2172,12 +2183,16 @@
         /**
          * Draw the cloud.
          */
+
+        call: function(){
+        },
+
         draw: function (e) {
-            Runner.prototype.handleEvent(e, true);
+            // 무한 드로우
+
             this.canvasCtx.save();
             var sourceWidth = Cloud.config.WIDTH;
             var sourceHeight = Cloud.config.HEIGHT;
-
             if (IS_HIDPI) {
                 sourceWidth = sourceWidth * 2;
                 sourceHeight = sourceHeight * 2;
@@ -2390,7 +2405,7 @@
         this.sourceDimensions = {};
         this.dimensions = HorizonLine.dimensions;
         this.sourceXPos = [this.spritePos.x, this.spritePos.x +
-            this.dimensions.WIDTH];
+        this.dimensions.WIDTH];
         this.xPos = [];
         this.yPos = 0;
         this.bumpThreshold = 0.5;
@@ -2725,8 +2740,11 @@
 })();
 
 
+let runnerObj;
 function onDocumentLoad() {
-    new Runner('.interstitial-wrapper');
+    runnerObj = new Runner('.interstitial-wrapper');
+    return runnerObj;
 }
 
-document.addEventListener('DOMContentLoaded', onDocumentLoad);
+export {onDocumentLoad};
+//
