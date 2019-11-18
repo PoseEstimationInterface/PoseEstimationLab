@@ -329,6 +329,7 @@ function setupGui(cameras, net) {
         break;
     }
   });
+
 }
 
 /**
@@ -476,6 +477,9 @@ function detectPoseInRealTime(video, net) {
       ctx.restore();
     }
 
+    ctx.fillRect(lBoxPosX, lBoxPosY, boxSize, boxSize); // 왼쪽박스
+    ctx.fillRect(rBoxPosX, rBoxPosY, boxSize, boxSize); // 오른쪽박스
+
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
     // scores
@@ -485,31 +489,33 @@ function detectPoseInRealTime(video, net) {
 
     if (captured) {
       captured = false;
-      // capturedPose.push(poses[0]);
       let rightWristPos = poses[0]["keypoints"][10]["position"]
+      let leftWristPos = poses[0]["keypoints"][9]["position"]
       console.log(rightWristPos)
-      // console.log(JSON.stringify(capturedPose));
-      // console.log(JSON.stringify(poses[0]["keypoints"][10]["position"]))
-
-      // if (rightWristPos["x"] > 450 && rightWristPos["y"] < 150) {
-      //   console.log("rightWrist in...")
-      // }
     }
 
     let rWrist = poses[0]["keypoints"][10]["position"]
-    if (rWrist["x"] > 450 && rWrist["y"] < 150 && rWristIn == false) {
-      // var audio = new Audio('./mp3/Resonate_Snare_Sat06.mp3');
-      var audio = document.getElementById("snareSrc");
-      audio.play();
-      // console.log(audio.src)
-      // audio.play();
+    if (isInRightBox(rWrist) && rWristIn == false) {
+      audioHat.play();
       console.log("## rightWrist in...");
       rWristIn = true;
     }
 
-    if (rWrist["x"] < 450 && rWrist["y"] > 150 && rWristIn == true) {
+    if (!isInRightBox(rWrist) && rWristIn == true) {
       console.log("## rightWrist out...");
       rWristIn = false;
+    }
+
+    let lWrist = poses[0]["keypoints"][9]["position"]
+    if (isInLeftBox(lWrist) && lWristIn == false) {
+      audioSnare.play();
+      console.log("## leftWrist in...");
+      lWristIn = true;
+    }
+
+    if (!isInLeftBox(lWrist) && lWristIn == true) {
+      console.log("## leftWrist out...");
+      lWristIn = false;
     }
 
     poses.forEach(({ score, keypoints }) => {
@@ -537,7 +543,37 @@ function detectPoseInRealTime(video, net) {
   poseDetectionFrame();
 }
 
+let lBoxPosX = 75;
+let lBoxPosY = 400;
+let rBoxPosX = 375;
+let rBoxPosY = 400;
+let boxSize = 150;
+
 let rWristIn = false;
+let lWristIn = false;
+const audioSnare = document.getElementById("snareSrc");
+const audioHat = document.getElementById("hihatSrc");
+
+// let rWrist = poses[0]["keypoints"][10]["position"]
+// if (rWrist["x"] > 450 && rWrist["y"] < 150 && rWristIn == false)
+
+function isInRightBox(wrist) {
+  if (rBoxPosX < wrist["x"] && wrist["x"] < rBoxPosX+boxSize) {
+    if (rBoxPosY < wrist["y"] && wrist["y"] < rBoxPosY+boxSize) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isInLeftBox(wrist) {
+  if (lBoxPosX < wrist["x"] && wrist["x"] < lBoxPosX+boxSize) {
+    if (lBoxPosY < wrist["y"] && wrist["y"] < lBoxPosY+boxSize) {
+      return true;
+    }
+  }
+  return false;
+}
 
 let recordedPoses = [];
 let recorded = false;
