@@ -36,8 +36,6 @@ const videoWidth = 600;
 const videoHeight = 600;
 const stats = new Stats();
 
-const model = require("./model/model.json");
-
 /**
  * Loads a the camera to be used in the demo
  *
@@ -343,6 +341,9 @@ function setupFPS() {
  * Feeds an image to posenet to estimate poses - this is where the magic
  * happens. This function loops with a requestAnimationFrame method.
  */
+
+let myModel;
+
 function detectPoseInRealTime(video, net) {
   const canvas = document.getElementById("output");
   const ctx = canvas.getContext("2d");
@@ -476,6 +477,23 @@ function detectPoseInRealTime(video, net) {
       ctx.restore();
     }
 
+    const points = poses[0]["keypoints"];
+
+    const positions = points.map(point => {
+      if (point["score"] >= 0.5) {
+        return [point["position"]["x"], point["position"]["y"]];
+      } else {
+        return [0, 0];
+      }
+    });
+
+    const data = tf.reshape([...positions], [1, 34]);
+
+    const result = myModel.predict(data);
+    ctx.font = "18px Arial";
+
+    ctx.fillText(result.dataSync(), 10, 50);
+
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
     // scores
@@ -569,6 +587,12 @@ export async function bindPage() {
   setupGui([], net);
   setupRecord();
   setupFPS();
+
+  myModel = await tf.loadLayersModel(
+    "http://localhost:1234/static/model/model.json"
+  );
+
+  console.log("[myModel] Loaded");
 
   detectPoseInRealTime(video, net);
 }
