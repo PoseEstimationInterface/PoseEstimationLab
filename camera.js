@@ -35,11 +35,200 @@ import {
 const videoWidth = 600;
 const videoHeight = 600;
 const stats = new Stats();
+var ground = [0,0];
+var ground_val = 0;
+
+const model = require("./model/model.json");
 
 /**
  * Loads a the camera to be used in the demo
  *
  */
+function sum(array) {
+  var result = 0.0;
+
+  for (var i = 0; i < array.length; i++)
+    result += array[i];
+
+  return result;
+}
+
+function whereGround(pose)
+{
+  var rightGround = pose['keypoints'][16]['position']['y'];
+  rightGround = rightGround - ((rightGround-ground_val)*0.2);
+  if(ground.length > 30)
+  {
+    ground.pop();
+  }
+  if(pose['keypoints'][16]['score']>0.5)
+  {
+    ground.unshift(rightGround);
+  }
+  console.log(ground);
+  ground_val = sum(ground)/ground.length;
+
+
+}
+function WhatLen(point_1,point_2)
+{
+  var point_1_x=point_1['x'];
+  var point_1_y=point_1['y'];
+
+  var point_2_x=point_2['x'];
+  var point_2_y=point_2['y'];
+
+  var vector1_x = point_2_x - point_1_x;
+  var vector1_y = point_2_y - point_1_y;
+
+  return Math.sqrt((vector1_x*vector1_x)+(vector1_y*vector1_y));
+}
+
+function WhatAngle(point_1,point_mid,point_2)
+{
+  var point_1_x=point_1['x'];
+  var point_1_y=point_1['y'];
+
+  var point_mid_x=point_mid['x'];
+  var point_mid_y=point_mid['y'];
+
+  var point_2_x=point_2['x'];
+  var point_2_y=point_2['y'];
+  
+  var vector1_x = point_mid_x - point_1_x;
+  var vector1_y = point_mid_y - point_1_y;
+
+  var vector2_x = point_mid_x - point_2_x;
+  var vector2_y = point_mid_y - point_2_y;
+
+  
+  var abs1 = Math.sqrt((vector1_x*vector1_x)+(vector1_y*vector1_y));
+  var abs2 = Math.sqrt((vector2_x*vector2_x)+(vector2_y*vector2_y));
+  var naej = (vector1_x*vector2_x)+(vector1_y*vector2_y);
+  var cosVal = naej/(abs1*abs2);
+
+  return Math.acos(cosVal)*(180/Math.PI);
+  
+
+}
+
+function left_handsup(pose)
+{
+  var lefthip = pose['keypoints'][11]['position'];
+  var leftshouler = pose['keypoints'][5]['position']
+  var leftElbow = pose['keypoints'][7]['position']
+  var leftWrist = pose['keypoints'][9]['position']
+
+  var angle = WhatAngle(leftElbow,leftshouler,lefthip)
+  if(leftWrist['y']-leftElbow['y'] < 0)
+  {
+    if(angle>90)
+    {
+      return 2; //Big hands up
+    }
+    else
+    {
+      return 1; //Small hands up
+    }
+  }
+  return 0;
+}
+
+function right_handsup(pose)
+{
+  var righthip = pose['keypoints'][12]['position'];
+  var rightshouler = pose['keypoints'][6]['position']
+  var rightElbow = pose['keypoints'][8]['position']
+  var rightWrist = pose['keypoints'][10]['position']
+
+  var angle = WhatAngle(rightElbow,rightshouler,righthip)
+  if(rightWrist['y']-rightElbow['y'] < 0)
+  {
+    if(angle>90)
+    {
+      return 2; //Big hands up
+    }
+    else
+    {
+      return 1; //Small hands up
+    }
+  }
+  return 0;
+}
+
+function left_handsupL(pose)
+{
+  var nose = pose['keypoints'][0]['position'];
+  var leftwrist = pose['keypoints'][9]['position']
+  
+  if(nose['y']-leftwrist['y'] < 0)
+  {
+    return 1;
+  }
+  return 0;
+}
+
+function right_handsupL(pose)
+{
+  var nose = pose['keypoints'][0]['position'];
+  var rightwrist = pose['keypoints'][10]['position']
+  
+  if(nose['y']-rightwrist['y'] < 0)
+  {
+    return 1;
+  }
+  return 0;
+}
+
+function sitdown(pose)
+{
+  var lefthip = pose['keypoints'][11]['position'];
+  var leftankle = pose['keypoints'][15]['position'];
+  var leftshoulder = pose['keypoints'][5]['position'];
+
+  var righthip = pose['keypoints'][12]['position'];
+  var rightankle = pose['keypoints'][16]['position'];
+  var rightshoulder = pose['keypoints'][6]['position'];
+
+  var len1 = lefthip['y'] - leftshoulder['y'];
+  var len2 = leftankle['y'] - lefthip['y'];
+
+  var len3 = righthip['y'] - rightshoulder['y'];
+  var len4 = rightankle['y'] - righthip['y'];
+
+  if(len2 < len1*0.9  && len4 < len3*0.9 )
+  {
+    return 1;
+  }
+  return 0;
+}
+
+
+function sangsang(pose)
+{
+  var righthip = pose['keypoints'][12]['position'];
+  var rightshouler = pose['keypoints'][6]['position']
+  var rightElbow = pose['keypoints'][8]['position']
+  var rightWrist = pose['keypoints'][10]['position']
+
+  var angle1 = WhatAngle(rightWrist,rightElbow,rightshouler)
+
+  var lefthip = pose['keypoints'][11]['position'];
+  var leftshouler = pose['keypoints'][5]['position']
+  var leftElbow = pose['keypoints'][7]['position']
+  var leftWrist = pose['keypoints'][9]['position']
+
+  var angle2 = WhatAngle(leftWrist,leftElbow,leftshouler)
+
+  if(angle1>80 && angle2>80 && leftElbow['y']-leftWrist['y']<0 && rightElbow['y']-rightWrist['y']>0)
+  {
+    return 1;
+  }
+  
+  return 0;
+}
+
+
 async function setupCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
@@ -341,13 +530,12 @@ function setupFPS() {
  * Feeds an image to posenet to estimate poses - this is where the magic
  * happens. This function loops with a requestAnimationFrame method.
  */
-
-let myModel;
-
 function detectPoseInRealTime(video, net) {
   const canvas = document.getElementById("output");
   const ctx = canvas.getContext("2d");
-
+  var txt = canvas.getContext("2d");
+  txt.font = "40px malgun gothic";
+  txt.fillStyle = "rgb(255,255,255)";
   // since images are being fed from a webcam, we want to feed in the
   // original image and then just flip the keypoints' x coordinates. If instead
   // we flip the image, then correcting left-right keypoint pairs requires a
@@ -460,13 +648,11 @@ function detectPoseInRealTime(video, net) {
           scoreThreshold: guiState.multiPoseDetection.minPartConfidence,
           nmsRadius: guiState.multiPoseDetection.nmsRadius
         });
-
         poses = poses.concat(all_poses);
         minPoseConfidence = +guiState.multiPoseDetection.minPoseConfidence;
         minPartConfidence = +guiState.multiPoseDetection.minPartConfidence;
         break;
     }
-
     ctx.clearRect(0, 0, videoWidth, videoHeight);
 
     if (guiState.output.showVideo) {
@@ -476,23 +662,6 @@ function detectPoseInRealTime(video, net) {
       ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
       ctx.restore();
     }
-
-    const points = poses[0]["keypoints"];
-
-    const positions = points.map(point => {
-      if (point["score"] >= 0.5) {
-        return [point["position"]["x"], point["position"]["y"]];
-      } else {
-        return [0, 0];
-      }
-    });
-
-    const data = tf.reshape([...positions], [1, 34]);
-
-    const result = myModel.predict(data);
-    ctx.font = "18px Arial";
-
-    ctx.fillText(result.dataSync(), 10, 50);
 
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
@@ -514,11 +683,60 @@ function detectPoseInRealTime(video, net) {
         }
       }
     });
+    
+    if (poses[0]['keypoints'][15]['score']>0.5&&sitdown(poses[0])==1)
+    {
+      txt.font = "40px malgun gothic";
+      txt.fillStyle = "rgba(255,0,255,1)";
+      txt.fillText("Sit Down",poses[0]['keypoints'][0]['position']['x'],poses[0]['keypoints'][0]['position']['y']);
+    }
+    
+    if (poses[0]['keypoints'][10]['score']>0.5&&right_handsup(poses[0])==1)
+    {
+      txt.font = "40px malgun gothic";
+      txt.fillStyle = "rgba(255,0,255,1)";
+      txt.fillText("small Hand up",poses[0]['keypoints'][10]['position']['x'],poses[0]['keypoints'][10]['position']['y']);
+    }
+    else if (poses[0]['keypoints'][10]['score']>0.5&&right_handsup(poses[0])==2)
+    {
+      txt.font = "40px malgun gothic";
+      txt.fillStyle = "rgba(255,0,255,1)";
+      txt.fillText("BBBBBBIIIG Hand up",poses[0]['keypoints'][10]['position']['x'],poses[0]['keypoints'][10]['position']['y']);
+    }
+    if (poses[0]['keypoints'][9]['score']>0.5&&left_handsup(poses[0])==1)
+    {
+      txt.font = "40px malgun gothic";
+      txt.fillStyle = "rgba(255,0,255,1)";
+      txt.fillText("small Hand up",poses[0]['keypoints'][9]['position']['x'],poses[0]['keypoints'][9]['position']['y']);
+    }
+    else if (poses[0]['keypoints'][9]['score']>0.5&&left_handsup(poses[0])==2)
+    {
+      txt.font = "40px malgun gothic";
+      txt.fillStyle = "rgba(255,0,255,1)";
+      txt.fillText("BBBBBIIIIIG Hand up",poses[0]['keypoints'][9]['position']['x'],poses[0]['keypoints'][9]['position']['y']);
+    }
 
+    if (poses[0]['keypoints'][9]['score']>0.5&&sangsang(poses[0])==1)
+    {
+      txt.font = "40px malgun gothic";
+      txt.fillStyle = "rgba(255,0,255,1)";
+      txt.fillText("상상도 못한 정체 !!!!",poses[0]['keypoints'][9]['position']['x'],poses[0]['keypoints'][0]['position']['y']);
+    }
+    
+    whereGround(poses[0]);
+
+    txt.font = "20px malgun gothic";
+    txt.fillStyle = "rgba(255,0,0,1)";
+    txt.fillText("여기가 바닥 여기가 바닥 여기가 바닥 여기가 바닥",20,ground_val);
+    console.log(ground_val);
+
+    
     // End monitoring code for frames per second
     stats.end();
 
     requestAnimationFrame(poseDetectionFrame);
+    
+    
   }
 
   poseDetectionFrame();
@@ -587,12 +805,6 @@ export async function bindPage() {
   setupGui([], net);
   setupRecord();
   setupFPS();
-
-  myModel = await tf.loadLayersModel(
-    "http://localhost:1234/static/model/model.json"
-  );
-
-  console.log("[myModel] Loaded");
 
   detectPoseInRealTime(video, net);
 }
