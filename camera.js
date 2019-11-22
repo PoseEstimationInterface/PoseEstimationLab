@@ -31,12 +31,16 @@ import {
   tryResNetButtonText,
   updateTryResNetButtonDatGuiCss
 } from "./demo_util";
+import { math } from "@tensorflow/tfjs";
 
 const videoWidth = 600;
 const videoHeight = 600;
 const stats = new Stats();
 var ground = [0,0];
 var groundVal = 0;
+var prePose = []; //whatV를 위해 필요한 Array
+
+
 
 const model = require("./model/model.json");
 
@@ -44,6 +48,7 @@ const model = require("./model/model.json");
  * Loads a the camera to be used in the demo
  *
  */
+
 function sum(array) {
   var result = 0.0;
 
@@ -56,7 +61,7 @@ function sum(array) {
 function whereGround(pose)
 {
   var rightGround = pose['keypoints'][16]['position']['y'];
-  rightGround = rightGround - ((rightGround-ground_val)*0.2);
+  rightGround = rightGround - ((rightGround-groundVal)*0.3);
   if(ground.length > 30)
   {
     ground.pop();
@@ -65,11 +70,11 @@ function whereGround(pose)
   {
     ground.unshift(rightGround);
   }
-  console.log(ground);
-  ground_Val = sum(ground)/ground.length;
+  groundVal = sum(ground)/ground.length;
 
 
 }
+
 function whatLen(point_1,point_2)
 {
   var point_1_x=point_1['x'];
@@ -108,6 +113,19 @@ function whatAngle(point_1,point_mid,point_2)
   var cosVal = dotProduct/(abs1*abs2);
 
   return Math.acos(cosVal)*(180/Math.PI);
+}
+
+function whatV(pointNum)
+{
+  var len = whatLen(prePose[0]['keypoints'][pointNum]['position'],prePose[3]['keypoints'][pointNum]['position']);
+  var vectorX = prePose[0]['keypoints'][pointNum]['position']['x'] - prePose[3]['keypoints'][pointNum]['position']['x'];
+  var vectorY = prePose[0]['keypoints'][pointNum]['position']['y'] - prePose[3]['keypoints'][pointNum]['position']['y'];
+  vectorX = vectorX / len;
+  vectorY = vectorY / len;
+  len = len/3.0;
+  console.log(len);
+  var result = [len,vectorX,vectorY];
+  return result;
 }
 
 function leftHandsup(pose)
@@ -201,22 +219,19 @@ function sitDown(pose)
   return 0;
 }
 
-
 function sangSang(pose)
 {
-  var rightHip = pose['keypoints'][12]['position'];
   var rightShoulder = pose['keypoints'][6]['position']
   var rightElbow = pose['keypoints'][8]['position']
   var rightWrist = pose['keypoints'][10]['position']
 
-  var angle1 = WhatAngle(rightWrist,rightElbow,rightShoulder)
+  var angle1 = whatAngle(rightWrist,rightElbow,rightShoulder)
 
-  var leftHip = pose['keypoints'][11]['position'];
   var leftShoulder = pose['keypoints'][5]['position']
   var leftElbow = pose['keypoints'][7]['position']
   var leftWrist = pose['keypoints'][9]['position']
 
-  var angle2 = W1hatAngle(leftWrist,leftElbow,leftShoulder)
+  var angle2 = whatAngle(leftWrist,leftElbow,leftShoulder)
 
   if(angle1>80 && angle2>80 && leftElbow['y']-leftWrist['y']<0 && rightElbow['y']-rightWrist['y']>0)
   {
@@ -225,6 +240,56 @@ function sangSang(pose)
   
   return 0;
 }
+
+function jumpWithGround(pose)
+{
+  if(pose['keypoints'][15]['score']>0.5)
+  {
+    var leftAnkle = pose['keypoints'][15]['position'];
+
+    var rightHip = pose['keypoints'][12]['position'];
+    var rightAnkle = pose['keypoints'][16]['position'];
+
+    var jumpDefault = (rightAnkle['y'] - rightHip['y'])/ 4;
+    var rightJumpLen = groundVal - rightAnkle['y'] ;
+    var leftJumpLen = groundVal - leftAnkle['y'] ;
+
+    if(rightJumpLen > jumpDefault && leftJumpLen > jumpDefault)
+    {
+      return 1;
+    }
+
+  }
+  return 0;
+}
+function jumpWithVector(pose)
+{
+  if(pose['keypoints'][15]['score']>0.5)
+  {
+    var rightVector = whatV(16);
+    var leftVector = whatV(15);
+    var rightAngle = (Math.acos(rightVector[1])*180)/Math.PI;
+    var leftAngle = (Math.acos(leftVector[1])*180)/Math.PI;
+
+    //console.log(rightAngle);
+    
+    if (rightAngle>80 && rightAngle<100)
+    {
+      if (leftAngle>80 && leftAngle<100)
+      {
+        if (leftVector[0]>50 && rightVector[0]>50)
+        {
+          return 1;
+        }
+      }
+    }
+
+
+  }
+  return 0;
+  
+}
+
 
 
 async function setupCamera() {
@@ -668,6 +733,9 @@ function detectPoseInRealTime(video, net) {
       recordedPoses.push(poses[0]);
     }
 
+    prePose.unshift(poses[0]);
+
+
     poses.forEach(({ score, keypoints }) => {
       if (score >= minPoseConfidence) {
         if (guiState.output.showPoints) {
@@ -682,53 +750,64 @@ function detectPoseInRealTime(video, net) {
       }
     });
     
-    if (poses[0]['keypoints'][15]['score']>0.5&&sitdown(poses[0])==1)
+    if (poses[0]['keypoints'][15]['score']>0.5&&sitDown(poses[0])==1)
     {
       txt.font = "40px malgun gothic";
       txt.fillStyle = "rgba(255,0,255,1)";
       txt.fillText("Sit Down",poses[0]['keypoints'][0]['position']['x'],poses[0]['keypoints'][0]['position']['y']);
     }
     
-    if (poses[0]['keypoints'][10]['score']>0.5&&right_handsup(poses[0])==1)
+    if (poses[0]['keypoints'][10]['score']>0.5&&rightHandsup(poses[0])==1)
     {
       txt.font = "40px malgun gothic";
       txt.fillStyle = "rgba(255,0,255,1)";
       txt.fillText("small Hand up",poses[0]['keypoints'][10]['position']['x'],poses[0]['keypoints'][10]['position']['y']);
     }
-    else if (poses[0]['keypoints'][10]['score']>0.5&&right_handsup(poses[0])==2)
+    else if (poses[0]['keypoints'][10]['score']>0.5&&rightHandsup(poses[0])==2)
     {
       txt.font = "40px malgun gothic";
       txt.fillStyle = "rgba(255,0,255,1)";
       txt.fillText("BBBBBBIIIG Hand up",poses[0]['keypoints'][10]['position']['x'],poses[0]['keypoints'][10]['position']['y']);
     }
-    if (poses[0]['keypoints'][9]['score']>0.5&&left_handsup(poses[0])==1)
+    if (poses[0]['keypoints'][9]['score']>0.5&&leftHandsup(poses[0])==1)
     {
       txt.font = "40px malgun gothic";
       txt.fillStyle = "rgba(255,0,255,1)";
       txt.fillText("small Hand up",poses[0]['keypoints'][9]['position']['x'],poses[0]['keypoints'][9]['position']['y']);
     }
-    else if (poses[0]['keypoints'][9]['score']>0.5&&left_handsup(poses[0])==2)
+    else if (poses[0]['keypoints'][9]['score']>0.5&&leftHandsup(poses[0])==2)
     {
       txt.font = "40px malgun gothic";
       txt.fillStyle = "rgba(255,0,255,1)";
       txt.fillText("BBBBBIIIIIG Hand up",poses[0]['keypoints'][9]['position']['x'],poses[0]['keypoints'][9]['position']['y']);
     }
 
-    if (poses[0]['keypoints'][9]['score']>0.5&&sangsang(poses[0])==1)
+    if (poses[0]['keypoints'][9]['score']>0.5&&sangSang(poses[0])==1)
     {
       txt.font = "40px malgun gothic";
       txt.fillStyle = "rgba(255,0,255,1)";
       txt.fillText("상상도 못한 정체 !!!!",poses[0]['keypoints'][9]['position']['x'],poses[0]['keypoints'][0]['position']['y']);
     }
-    
+    if (jumpWithVector(poses[0])==1)
+    {
+      txt.font = "40px malgun gothic";
+      txt.fillStyle = "rgba(255,0,255,1)";
+      txt.fillText("점프!!!!!!!!!!",poses[0]['keypoints'][9]['position']['x'],poses[0]['keypoints'][0]['position']['y']);
+    }
+
     whereGround(poses[0]);
+    txt.font = "40px malgun gothic";
+    txt.fillStyle = "rgba(255,0,255,1)";
+    txt.fillText("여기가바닥 여기가바닥 여기가바닥 여기가바닥 여기가바닥 여기가바닥",10,groundVal);
 
-    txt.font = "20px malgun gothic";
-    txt.fillStyle = "rgba(255,0,0,1)";
-    txt.fillText("여기가 바닥 여기가 바닥 여기가 바닥 여기가 바닥",20,ground_val);
-    console.log(ground_val);
 
-    
+    // whatV를 위한 부분
+    if(prePose.length > 4)
+    {
+      whatV(10);
+      prePose.pop();
+    }
+
     // End monitoring code for frames per second
     stats.end();
 
