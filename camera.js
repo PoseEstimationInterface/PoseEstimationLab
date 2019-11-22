@@ -115,7 +115,7 @@ function whatAngle(point_1,point_mid,point_2)
   return Math.acos(cosVal)*(180/Math.PI);
 }
 
-function whatV(pointNum)
+function whatV(pointNum, threshold)
 {
   var len = whatLen(prePose[0]['keypoints'][pointNum]['position'],prePose[3]['keypoints'][pointNum]['position']);
   var vectorX = prePose[0]['keypoints'][pointNum]['position']['x'] - prePose[3]['keypoints'][pointNum]['position']['x'];
@@ -123,7 +123,13 @@ function whatV(pointNum)
   vectorX = vectorX / len;
   vectorY = vectorY / len;
   len = len/3.0;
-  console.log(len);
+  if(len < threshold)
+  {
+    vectorX = 0;
+    vectorY = 0;
+    len = 0;
+  }
+
   var result = [len,vectorX,vectorY];
   return result;
 }
@@ -264,22 +270,31 @@ function jumpWithGround(pose)
 }
 function jumpWithVector(pose)
 {
-  if(pose['keypoints'][15]['score']>0.5)
+  if(pose['keypoints'][10]['score']>0.5)
   {
-    var rightVector = whatV(16);
-    var leftVector = whatV(15);
+    var rightVector = whatV(16,3);
+    var leftVector = whatV(15,3);
     var rightAngle = (Math.acos(rightVector[1])*180)/Math.PI;
     var leftAngle = (Math.acos(leftVector[1])*180)/Math.PI;
 
-    //console.log(rightAngle);
-    
+    if(rightVector[2]>0)
+    {
+      rightAngle *= -1;  
+    }
+
+    if(leftVector[2]>0)
+    {
+      leftAngle *= -1;  
+    }
+
     if (rightAngle>80 && rightAngle<100)
     {
       if (leftAngle>80 && leftAngle<100)
       {
-        if (leftVector[0]>50 && rightVector[0]>50)
+        if (leftVector[0]>20 && rightVector[0]>20)
         {
-          return 1;
+          if (rightAngle !=90 && leftAngle != 90)
+            return 1;
         }
       }
     }
