@@ -36,7 +36,7 @@ const videoWidth = 600;
 const videoHeight = 600;
 const stats = new Stats();
 var ground = [0,0];
-var ground_val = 0;
+var groundVal = 0;
 
 const model = require("./model/model.json");
 
@@ -66,11 +66,11 @@ function whereGround(pose)
     ground.unshift(rightGround);
   }
   console.log(ground);
-  ground_val = sum(ground)/ground.length;
+  ground_Val = sum(ground)/ground.length;
 
 
 }
-function WhatLen(point_1,point_2)
+function whatLen(point_1,point_2)
 {
   var point_1_x=point_1['x'];
   var point_1_y=point_1['y'];
@@ -84,7 +84,7 @@ function WhatLen(point_1,point_2)
   return Math.sqrt((vector1_x*vector1_x)+(vector1_y*vector1_y));
 }
 
-function WhatAngle(point_1,point_mid,point_2)
+function whatAngle(point_1,point_mid,point_2)
 {
   var point_1_x=point_1['x'];
   var point_1_y=point_1['y'];
@@ -104,22 +104,20 @@ function WhatAngle(point_1,point_mid,point_2)
   
   var abs1 = Math.sqrt((vector1_x*vector1_x)+(vector1_y*vector1_y));
   var abs2 = Math.sqrt((vector2_x*vector2_x)+(vector2_y*vector2_y));
-  var naej = (vector1_x*vector2_x)+(vector1_y*vector2_y);
-  var cosVal = naej/(abs1*abs2);
+  var dotProduct = (vector1_x*vector2_x)+(vector1_y*vector2_y);
+  var cosVal = dotProduct/(abs1*abs2);
 
   return Math.acos(cosVal)*(180/Math.PI);
-  
-
 }
 
-function left_handsup(pose)
+function leftHandsup(pose)
 {
-  var lefthip = pose['keypoints'][11]['position'];
-  var leftshouler = pose['keypoints'][5]['position']
+  var leftHip = pose['keypoints'][11]['position'];
+  var leftShoulder = pose['keypoints'][5]['position']
   var leftElbow = pose['keypoints'][7]['position']
   var leftWrist = pose['keypoints'][9]['position']
 
-  var angle = WhatAngle(leftElbow,leftshouler,lefthip)
+  var angle = whatAngle(leftElbow,leftShoulder,leftHip)
   if(leftWrist['y']-leftElbow['y'] < 0)
   {
     if(angle>90)
@@ -134,14 +132,14 @@ function left_handsup(pose)
   return 0;
 }
 
-function right_handsup(pose)
+function rightHandsup(pose)
 {
-  var righthip = pose['keypoints'][12]['position'];
-  var rightshouler = pose['keypoints'][6]['position']
+  var rightHip = pose['keypoints'][12]['position'];
+  var rightShoulder = pose['keypoints'][6]['position']
   var rightElbow = pose['keypoints'][8]['position']
   var rightWrist = pose['keypoints'][10]['position']
 
-  var angle = WhatAngle(rightElbow,rightshouler,righthip)
+  var angle = whatAngle(rightElbow,rightShoulder,rightHip)
   if(rightWrist['y']-rightElbow['y'] < 0)
   {
     if(angle>90)
@@ -156,45 +154,45 @@ function right_handsup(pose)
   return 0;
 }
 
-function left_handsupL(pose)
+function leftHandsupL(pose)
 {
   var nose = pose['keypoints'][0]['position'];
-  var leftwrist = pose['keypoints'][9]['position']
+  var leftWrist = pose['keypoints'][9]['position']
   
-  if(nose['y']-leftwrist['y'] < 0)
+  if(nose['y']-leftWrist['y'] < 0)
   {
     return 1;
   }
   return 0;
 }
 
-function right_handsupL(pose)
+function rightHandsupL(pose)
 {
   var nose = pose['keypoints'][0]['position'];
-  var rightwrist = pose['keypoints'][10]['position']
+  var rightWrist = pose['keypoints'][10]['position']
   
-  if(nose['y']-rightwrist['y'] < 0)
+  if(nose['y']-rightWrist['y'] < 0)
   {
     return 1;
   }
   return 0;
 }
 
-function sitdown(pose)
+function sitDown(pose)
 {
-  var lefthip = pose['keypoints'][11]['position'];
-  var leftankle = pose['keypoints'][15]['position'];
-  var leftshoulder = pose['keypoints'][5]['position'];
+  var leftHip = pose['keypoints'][11]['position'];
+  var leftAnkle = pose['keypoints'][15]['position'];
+  var leftShoulder = pose['keypoints'][5]['position'];
 
-  var righthip = pose['keypoints'][12]['position'];
-  var rightankle = pose['keypoints'][16]['position'];
-  var rightshoulder = pose['keypoints'][6]['position'];
+  var rightHip = pose['keypoints'][12]['position'];
+  var rightAnkle = pose['keypoints'][16]['position'];
+  var rightShoulder = pose['keypoints'][6]['position'];
 
-  var len1 = lefthip['y'] - leftshoulder['y'];
-  var len2 = leftankle['y'] - lefthip['y'];
+  var len1 = leftHip['y'] - leftShoulder['y'];
+  var len2 = leftAnkle['y'] - leftHip['y'];
 
-  var len3 = righthip['y'] - rightshoulder['y'];
-  var len4 = rightankle['y'] - righthip['y'];
+  var len3 = rightHip['y'] - rightShoulder['y'];
+  var len4 = rightAnkle['y'] - rightHip['y'];
 
   if(len2 < len1*0.9  && len4 < len3*0.9 )
   {
@@ -204,21 +202,21 @@ function sitdown(pose)
 }
 
 
-function sangsang(pose)
+function sangSang(pose)
 {
-  var righthip = pose['keypoints'][12]['position'];
-  var rightshouler = pose['keypoints'][6]['position']
+  var rightHip = pose['keypoints'][12]['position'];
+  var rightShoulder = pose['keypoints'][6]['position']
   var rightElbow = pose['keypoints'][8]['position']
   var rightWrist = pose['keypoints'][10]['position']
 
-  var angle1 = WhatAngle(rightWrist,rightElbow,rightshouler)
+  var angle1 = WhatAngle(rightWrist,rightElbow,rightShoulder)
 
-  var lefthip = pose['keypoints'][11]['position'];
-  var leftshouler = pose['keypoints'][5]['position']
+  var leftHip = pose['keypoints'][11]['position'];
+  var leftShoulder = pose['keypoints'][5]['position']
   var leftElbow = pose['keypoints'][7]['position']
   var leftWrist = pose['keypoints'][9]['position']
 
-  var angle2 = WhatAngle(leftWrist,leftElbow,leftshouler)
+  var angle2 = W1hatAngle(leftWrist,leftElbow,leftShoulder)
 
   if(angle1>80 && angle2>80 && leftElbow['y']-leftWrist['y']<0 && rightElbow['y']-rightWrist['y']>0)
   {
