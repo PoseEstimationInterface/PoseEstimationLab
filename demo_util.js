@@ -87,7 +87,7 @@ function toTuple({ y, x }) {
 }
 
 export function drawPoint(ctx, y, x, r, color) {
-  Runner.tRex.startJump(Runner.currentSpeed);
+  //Runner.tRex.startJump(Runner.currentSpeed); //점프 제어 쌉가능
   ctx.beginPath();
   ctx.arc(x, y, r, 0, 2 * Math.PI);
   ctx.fillStyle = color;
