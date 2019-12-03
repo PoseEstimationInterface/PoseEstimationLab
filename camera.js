@@ -37,7 +37,9 @@ const videoWidth = 600;
 const videoHeight = 600;
 const stats = new Stats();
 var ground = [0,0];
+var nose = [0,0];
 var groundVal = 0;
+var noseVal = 0;
 var prePose = []; //whatV를 위해 필요한 Array
 
 
@@ -72,6 +74,20 @@ function whereGround(pose)
   }
   groundVal = sum(ground)/ground.length;
 
+
+}
+function whereNose(pose){
+  var nowNose = pose['keypoints'][0]['position']['y'];
+  nowNose = nowNose - ((nowNose-noseVal)*0.3);
+  if(nose.length > 30)
+  {
+    nose.pop();
+  }
+  if(pose['keypoints'][0]['score']>0.5)
+  {
+    nose.unshift(nowNose);
+  }
+  noseVal = sum(nose)/nose.length;
 
 }
 
@@ -207,7 +223,7 @@ function sitDown(pose)
   var leftHip = pose['keypoints'][11]['position'];
   var leftAnkle = pose['keypoints'][15]['position'];
   var leftShoulder = pose['keypoints'][5]['position'];
-
+  
   var rightHip = pose['keypoints'][12]['position'];
   var rightAnkle = pose['keypoints'][16]['position'];
   var rightShoulder = pose['keypoints'][6]['position'];
@@ -218,7 +234,7 @@ function sitDown(pose)
   var len3 = rightHip['y'] - rightShoulder['y'];
   var len4 = rightAnkle['y'] - rightHip['y'];
 
-  if(len2 < len1*0.9  && len4 < len3*0.9 )
+  if(len2 < len1*0.8  && len4 < len3*0.8 )
   {
     return 1;
   }
@@ -811,10 +827,11 @@ function detectPoseInRealTime(video, net) {
     }
 
     whereGround(poses[0]);
+    whereNose(poses[0]);
     txt.font = "40px malgun gothic";
     txt.fillStyle = "rgba(255,0,255,1)";
     txt.fillText("여기가바닥 여기가바닥 여기가바닥 여기가바닥 여기가바닥 여기가바닥",10,groundVal);
-
+    console.log(poses[0]);
 
     // whatV를 위한 부분
     if(prePose.length > 4)
