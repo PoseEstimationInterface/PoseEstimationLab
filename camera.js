@@ -241,6 +241,21 @@ function sitDown(pose)
   return 0;
 }
 
+function sitDownWithGround(pose)
+{
+  var nowNose = pose['keypoints'][0]['position'];
+  var leftAnkle = pose['keypoints'][15]['position'];
+
+  var len1 = leftAnkle['y'] - nowNose['y'];
+  var len2 = groundVal - noseVal;
+
+  if(len1 < len2*0.8)
+  {
+    return 1;
+  }
+  return 0;
+}
+
 function sangSang(pose)
 {
   var rightShoulder = pose['keypoints'][6]['position']
@@ -781,7 +796,7 @@ function detectPoseInRealTime(video, net) {
       }
     });
     
-    if (poses[0]['keypoints'][15]['score']>0.5&&sitDown(poses[0])==1)
+    if (poses[0]['keypoints'][15]['score']>0.5&&sitDownWithGround(poses[0])==1)
     {
       txt.font = "40px malgun gothic";
       txt.fillStyle = "rgba(255,0,255,1)";
@@ -831,6 +846,7 @@ function detectPoseInRealTime(video, net) {
     txt.font = "40px malgun gothic";
     txt.fillStyle = "rgba(255,0,255,1)";
     txt.fillText("여기가바닥 여기가바닥 여기가바닥 여기가바닥 여기가바닥 여기가바닥",10,groundVal);
+    txt.fillText("여기가코 여기가코 여기가코 여기가코 여기가코 여기가코 여기가코",10,noseVal);
     console.log(poses[0]);
 
     // whatV를 위한 부분
