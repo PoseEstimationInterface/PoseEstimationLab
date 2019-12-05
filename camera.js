@@ -32,8 +32,8 @@ import {
   updateTryResNetButtonDatGuiCss
 } from "./demo_util";
 
-const videoWidth = 600;
-const videoHeight = 600;
+const videoWidth = 1600;
+const videoHeight = 900;
 const stats = new Stats();
 
 const model = require("./model/model.json");
