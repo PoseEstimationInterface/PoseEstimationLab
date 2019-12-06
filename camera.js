@@ -477,8 +477,11 @@ function detectPoseInRealTime(video, net) {
       ctx.restore();
     }
 
-    ctx.fillRect(lBoxPosX, lBoxPosY, boxSize, boxSize); // 왼쪽박스
-    ctx.fillRect(rBoxPosX, rBoxPosY, boxSize, boxSize); // 오른쪽박스
+    boxes.forEach(function(box) {
+      ctx.fillRect(box[0], box[1], box[2], box[3])
+    })
+    // ctx.fillRect(box1[0], box1[1], box1[2], box1[3]); // 왼쪽박스
+    // ctx.fillRect(box2[0], box2[1], box2[2], box2[3]); // 오른쪽박스
 
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
@@ -495,25 +498,25 @@ function detectPoseInRealTime(video, net) {
     }
 
     let rWrist = poses[0]["keypoints"][10]["position"]
-    if (isInRightBox(rWrist) && rWristIn == false) {
+    if (isInBox(rWrist, boxes[1]) && rWristIn == false) {
       audioHat.play();
       console.log("## rightWrist in...");
       rWristIn = true;
     }
 
-    if (!isInRightBox(rWrist) && rWristIn == true) {
+    if (!isInBox(rWrist, boxes[1]) && rWristIn == true) {
       console.log("## rightWrist out...");
       rWristIn = false;
     }
 
     let lWrist = poses[0]["keypoints"][9]["position"]
-    if (isInLeftBox(lWrist) && lWristIn == false) {
+    if (isInBox(lWrist, boxes[0]) && lWristIn == false) {
       audioSnare.play();
       console.log("## leftWrist in...");
       lWristIn = true;
     }
 
-    if (!isInLeftBox(lWrist) && lWristIn == true) {
+    if (!isInBox(lWrist, boxes[0]) && lWristIn == true) {
       console.log("## leftWrist out...");
       lWristIn = false;
     }
@@ -543,11 +546,14 @@ function detectPoseInRealTime(video, net) {
   poseDetectionFrame();
 }
 
-let lBoxPosX = 75;
-let lBoxPosY = 400;
-let rBoxPosX = 375;
-let rBoxPosY = 400;
-let boxSize = 150;
+// let lBoxPosX = 75;
+// let lBoxPosY = 400;
+// let rBoxPosX = 375;
+// let rBoxPosY = 400;
+// let boxSize = 150;
+
+var boxes = [[550, 600, 200, 150],
+          [850, 600, 200, 150]]
 
 let rWristIn = false;
 let lWristIn = false;
@@ -557,23 +563,32 @@ const audioHat = document.getElementById("hihatSrc");
 // let rWrist = poses[0]["keypoints"][10]["position"]
 // if (rWrist["x"] > 450 && rWrist["y"] < 150 && rWristIn == false)
 
-function isInRightBox(wrist) {
-  if (rBoxPosX < wrist["x"] && wrist["x"] < rBoxPosX+boxSize) {
-    if (rBoxPosY < wrist["y"] && wrist["y"] < rBoxPosY+boxSize) {
+function isInBox(wrist, box) {
+  if (box[0] < wrist["x"] && wrist["x"] < box[0]+box[2]) {
+    if (box[1] < wrist["y"] && wrist["y"] < box[1]+box[3]) {
       return true;
     }
   }
-  return false;
+  return false
 }
 
-function isInLeftBox(wrist) {
-  if (lBoxPosX < wrist["x"] && wrist["x"] < lBoxPosX+boxSize) {
-    if (lBoxPosY < wrist["y"] && wrist["y"] < lBoxPosY+boxSize) {
-      return true;
-    }
-  }
-  return false;
-}
+// function isInRightBox(wrist) {
+//   if (rBoxPosX < wrist["x"] && wrist["x"] < rBoxPosX+boxSize) {
+//     if (rBoxPosY < wrist["y"] && wrist["y"] < rBoxPosY+boxSize) {
+//       return true;
+//     }
+//   }
+//   return false;
+// }
+//
+// function isInLeftBox(wrist) {
+//   if (lBoxPosX < wrist["x"] && wrist["x"] < lBoxPosX+boxSize) {
+//     if (lBoxPosY < wrist["y"] && wrist["y"] < lBoxPosY+boxSize) {
+//       return true;
+//     }
+//   }
+//   return false;
+// }
 
 let recordedPoses = [];
 let recorded = false;
