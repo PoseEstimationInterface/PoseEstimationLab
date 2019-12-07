@@ -335,7 +335,15 @@ function jumpWithVector(pose)
   return 0;
   
 }
+function readyForVector(pose)
+{
+  prePose.unshift(poses[0]);
+  if(prePose.length > 4)
+  {
+    prePose.pop();
+  }
 
+}
 
 
 async function setupCamera() {
@@ -779,8 +787,6 @@ function detectPoseInRealTime(video, net) {
       recordedPoses.push(poses[0]);
     }
 
-    prePose.unshift(poses[0]);
-
 
     poses.forEach(({ score, keypoints }) => {
       if (score >= minPoseConfidence) {
@@ -848,13 +854,6 @@ function detectPoseInRealTime(video, net) {
     txt.fillText("여기가바닥 여기가바닥 여기가바닥 여기가바닥 여기가바닥 여기가바닥",10,groundVal);
     txt.fillText("여기가코 여기가코 여기가코 여기가코 여기가코 여기가코 여기가코",10,noseVal);
     console.log(poses[0]);
-
-    // whatV를 위한 부분
-    if(prePose.length > 4)
-    {
-      whatV(10);
-      prePose.pop();
-    }
 
     // End monitoring code for frames per second
     stats.end();
